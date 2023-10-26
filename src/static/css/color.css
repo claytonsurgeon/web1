@@ -1,0 +1,20 @@
+:root {
+	--red: 234 67 53;
+	--yellow: 251 188 5;
+	--green: 52 168 83;
+	--blue: 86 120 255;
+
+	--red-dark: 175 50 40;
+	--green-dark: 39 126 62;
+	--blue-dark: 64 90 192;
+
+	--purple: 88 86 214;
+
+	--black: 0 0 0;
+	--white: 255 255 255;
+
+	--electric-blue: 48 160 250;
+	--bluer: 20 128 250;
+	--electric-blue: 48 176 250;
+	--electric-blue-dark: 0 144 240;
+}

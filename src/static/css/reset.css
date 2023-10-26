@@ -1,0 +1,125 @@
+/*
+Best Way To Ordering CSS Properties by Importance
+	0. Content (for pseudo classes)
+	1. Clipping/Layering (z-index, overflow)
+	2. Layout Properties (position, float, clear, display)
+		2.1 display
+		2.2 flex/grid
+		2.3 position/float/etc
+	3. Box Model Properties (width, height, margin, padding)
+	4. Visual Properties (color, background, border, box-shadow)
+	5. Typography Properties (font-size, font-family, text-align, text-transform)
+	6. Misc Properties (cursor)
+*/
+
+/* *, */
+:root *,
+*::before,
+*::after {
+	position: relative;
+	box-sizing: border-box;
+}
+
+:root {
+	font-family: Inter, Helvetica, Avenir, Arial, sans-serif;
+	line-height: 1.5;
+	-moz-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+
+	min-height: 100%;
+}
+
+input,
+select,
+textarea {
+	margin: 0;
+	-webkit-appearance: none; /* fix padding on iOS inputs*/
+
+	font-family: inherit;
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+/* *::before,
+*::after,
+* {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	background: none;
+	outline: none;
+	border: none;
+	font-family: Inter, Helvetica, Avenir, Arial, sans-serif;
+	font-size: 16px;
+	line-height: 1.5;
+	-moz-box-sizing: border-box !important;
+	box-sizing: border-box !important;
+	vertical-align: baseline;
+	text-decoration: none;
+	-webkit-text-stroke: none !important;
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	-webkit-padding-start: 0;
+	padding-start: 0;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	-webkit-text-size-adjust: 100%;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
+	touch-action: pan-y pan-x !important;
+}
+*::placeholder {
+	color: inherit;
+	font-size: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	font-weight: inherit;
+	opacity: 0.5;
+}
+*:focus::placeholder {
+	opacity: 0.25 !important;
+}
+.firebase-emulator-warning {
+	display: none;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+	-webkit-appearance: none;
+}
+input[type="search"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear,
+input::-ms-reveal {
+	display: none !important;
+	opacity: 0.5;
+}
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+#app {
+	isolation: isolate;
+} */
