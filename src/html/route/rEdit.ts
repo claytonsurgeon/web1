@@ -2,13 +2,10 @@ import { State } from "/state.ts";
 import { rHTML } from "../rHTML.ts";
 import { Contact } from "/db.ts";
 
-export const rNewContact = (contact: Contact): string => {
-	return rHTML(tForm(contact) + rBack());
-};
-
-const tForm = (contact: Contact) => {
-	return `
-<form action="/contacts/new" method="post">
+export const rEdit = (contact: Contact): string =>
+	rHTML(
+		`
+<form action="/contacts/${contact.id}/edit" method="post">
 	<fieldset>
 		<legend>Contact Values</legend>
 			<p>
@@ -36,11 +33,13 @@ const tForm = (contact: Contact) => {
 			<button>Save</button>
 	</fieldset>
 </form>
-	`;
-};
 
-const rBack = () => `
+<form action="/contacts/${contact.id}/delete" method="post">
+	<button>Delete Contact</button>
+</form>
+
 <p>
 	<a href="/contacts">Back</a>
 </p>
-`;
+	`
+	);

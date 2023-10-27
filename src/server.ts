@@ -1,8 +1,18 @@
 import { Application, Router } from "oak";
-import { Contact, contact_all, contact_search } from "/db.ts";
+import {
+	Contact,
+	contact_all,
+	contact_search,
+	createContact,
+	getContact,
+	updateContact,
+	deleteContact,
+} from "/db.ts";
 import { State } from "/state.ts";
 import { rContacts } from "/html/route/rContacts.ts";
 import { rNewContact } from "/html/route/rNewContact.ts";
+import { rShow } from "/html/route/rShow.ts";
+import { rEdit } from "/html/route/rEdit.ts";
 
 const app = new Application();
 const api = new Router();
@@ -11,12 +21,12 @@ api.get("/", ctx => {
 	ctx.response.redirect("/contacts");
 });
 
-api.get("/contacts", ctx => {
+api.get("/contacts", async ctx => {
 	const q = ctx.request.url.searchParams.get("q") || "";
 
 	const state: State = {
 		q,
-		contacts: q ? contact_search(q) : contact_all(),
+		contacts: q ? contact_search(q) : await contact_all(),
 	};
 
 	ctx.response.body = rContacts(state);
@@ -29,6 +39,8 @@ api.get("/contacts/new", ctx => {
 		phone: "",
 		email: "",
 		id: "",
+
+		errors: {},
 	};
 
 	ctx.response.body = rNewContact(contact);
@@ -36,25 +48,75 @@ api.get("/contacts/new", ctx => {
 
 api.post("/contacts/new", async ctx => {
 	const form = await ctx.request.body({ type: "form" }).value;
-	// console.log(form.get("email"));
-	const contact: Contact = {
+
+	const input_contact: Contact = {
 		first: form.get("first_name") || "",
 		last: form.get("last_name") || "",
 		phone: form.get("phone") || "",
 		email: form.get("email") || "",
 		id: "",
+
+		errors: {},
 	};
 
-	console.log(contact);
+	console.log(input_contact);
 	// attempt to store contact
+	const contact = await createContact(input_contact);
 
-	if (false) {
-		ctx.response.redirect("/contacts");
-	} else {
+	for (const _errorType in contact.errors) {
 		ctx.response.body = rNewContact(contact);
+		return;
+	}
+	ctx.response.redirect("/contacts");
+});
+
+api.get("/contacts/:uuid", async ctx => {
+	const contact = await getContact(ctx.params.uuid);
+
+	if (contact) {
+		ctx.response.body = rShow(contact);
+	} else {
+		ctx.response.redirect("/contacts");
 	}
 });
 
+api.get("/contacts/:uuid/edit", async ctx => {
+	const contact = await getContact(ctx.params.uuid);
+
+	if (contact) {
+		ctx.response.body = rEdit(contact);
+	} else {
+		ctx.response.redirect("/contacts");
+	}
+});
+
+api.post("/contacts/:uuid/edit", async ctx => {
+	const form = await ctx.request.body({ type: "form" }).value;
+
+	const contact = await updateContact({
+		first: form.get("first_name") || "",
+		last: form.get("last_name") || "",
+		phone: form.get("phone") || "",
+		email: form.get("email") || "",
+		id: ctx.params.uuid,
+
+		errors: {},
+	});
+
+	for (const _errorType in contact.errors) {
+		ctx.response.body = rEdit(contact);
+		return;
+	}
+	ctx.response.redirect(`/contacts/${contact.id}`);
+});
+
+api.post("/contacts/:uuid/delete", async ctx => {
+	deleteContact(ctx.params.uuid);
+	ctx.response.redirect(`/contacts`);
+});
+
+//
+//
 app.use(api.routes());
 
 app.use(async (context, next) => {

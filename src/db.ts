@@ -7,12 +7,12 @@ export interface Contact {
 	email: string;
 	id: string;
 
-	errors?: Record<string, string>;
+	errors: Record<string, string>;
 }
 
 export type Contacts = Record<string, Contact>;
 
-export const contact_search = (q: String): Contacts => {
+export const contact_search = (_q: string): Contacts => {
 	return {
 		"123": {
 			first: "John",
@@ -20,57 +20,122 @@ export const contact_search = (q: String): Contacts => {
 			phone: "(123) 456 7890",
 			email: "john@example.com",
 			id: "123",
+
+			errors: {},
 		},
 	};
 };
-export const contact_all = (): Contacts => {
-	return {
-		"123": {
-			first: "John",
-			last: "Smith",
-			phone: "(123) 456 7890",
-			email: "john@example.com",
-			id: "123",
-		},
-		"456": {
-			first: "Dana",
-			last: "Crandith",
-			phone: "(123) 456 7890",
-			email: "dcran@example.com",
-			id: "456",
-		},
-		"789": {
-			first: "Edith",
-			last: "Neutvaar",
-			phone: "(123) 456 7890",
-			email: "en@example.com",
-			id: "789",
-		},
-	};
+export const contact_all = async (): Promise<Contacts> => {
+	const contacts: Contacts = {};
+
+	const entries = kv.list({ prefix: ["contacts"] });
+	for await (const entry of entries) {
+		const contact = entry.value as Contact;
+		contacts[contact.id] = contact;
+	}
+	return contacts;
+	// return {
+	// 	"123": {
+	// 		first: "John",
+	// 		last: "Smith",
+	// 		phone: "(123) 456 7890",
+	// 		email: "john@example.com",
+	// 		id: "123",
+	// 	},
+	// 	"456": {
+	// 		first: "Dana",
+	// 		last: "Crandith",
+	// 		phone: "(123) 456 7890",
+	// 		email: "dcran@example.com",
+	// 		id: "456",
+	// 	},
+	// 	"789": {
+	// 		first: "Edith",
+	// 		last: "Neutvaar",
+	// 		phone: "(123) 456 7890",
+	// 		email: "en@example.com",
+	// 		id: "789",
+	// 	},
+	// };
 };
 
-// export const createContact = async (
-// 	contact: Contact,
-// ): Promise<Contact> => {
-// 	if (!id || !contact) {
-// 		throw new Error("A slug and destination is required");
-// 	}
+export const getContact = async (id: string): Promise<Contact | null> => {
+	const entry = await kv.get(["contacts", id]);
 
-// 	const key = ["contacts", id];
-// 	const value: Contact = {
-// 		slug,
-// 		destination,
-// 	};
+	if (entry.value) {
+		return entry.value as Contact;
+	}
+	return null;
+};
 
-// 	// const res = await kv.set(key, value);
-// 	const res = await kv.atomic()
-// 		.check({ key, versionstamp: null })
-// 		.set(key, value)
-// 		.commit();
+export const createContact = async (contact: Contact): Promise<Contact> => {
+	contact.errors = {};
 
-// 	if (res.ok) {
-// 		return value;
-// 	} else {
-// 		throw new Error("Could not create link");
-// 	}
-// };
+	if (!contact.first) {
+		contact.errors.first = "A first name is required";
+	}
+	if (!contact.last) {
+		contact.errors.last = "A last name is required";
+	}
+	if (!contact.email) {
+		contact.errors.email = "An email is required";
+	}
+	if (!contact.phone) {
+		contact.errors.phone = "A phone number is required";
+	}
+
+	for (const _errorType in contact.errors) {
+		return contact;
+	}
+
+	contact.id = crypto.randomUUID();
+	const key = ["contacts", contact.id];
+
+	// no need for atomic when commiting with UUID
+	const res = await kv.set(key, contact);
+	// const res = await kv.atomic().check({ key, versionstamp: null }).set(key, contact).commit();
+
+	if (res.ok) {
+		return contact;
+	} else {
+		throw new Error("Could not create contact");
+	}
+};
+
+export const updateContact = async (contact: Contact): Promise<Contact> => {
+	const entry = await kv.get(["contacts", contact.id]);
+
+	if (!entry.value) throw new Error("Cannot update contact. Entry does not exist");
+
+	contact.errors = {};
+
+	if (!contact.first) {
+		contact.errors.first = "A first name is required";
+	}
+	if (!contact.last) {
+		contact.errors.last = "A last name is required";
+	}
+	if (!contact.email) {
+		contact.errors.email = "An email is required";
+	}
+	if (!contact.phone) {
+		contact.errors.phone = "A phone number is required";
+	}
+
+	for (const _errorType in contact.errors) {
+		return contact;
+	}
+
+	const key = ["contacts", contact.id];
+	const res = await kv.set(key, contact);
+
+	if (res.ok) {
+		return contact;
+	} else {
+		throw new Error("Could not update contact");
+	}
+};
+
+export const deleteContact = async (id: string) => {
+	await kv.delete(["contacts", id]);
+};
