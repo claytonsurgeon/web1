@@ -1,7 +1,8 @@
 import { Application, Router } from "oak";
-import { contact_all, contact_search } from "./db.ts";
-import { State } from "./state.ts";
-import { rApp } from "./template/rApp.ts";
+import { Contact, contact_all, contact_search } from "/db.ts";
+import { State } from "/state.ts";
+import { rContacts } from "/html/route/rContacts.ts";
+import { rNewContact } from "/html/route/rNewContact.ts";
 
 const app = new Application();
 const api = new Router();
@@ -18,11 +19,40 @@ api.get("/contacts", ctx => {
 		contacts: q ? contact_search(q) : contact_all(),
 	};
 
-	ctx.response.body = rApp(state);
+	ctx.response.body = rContacts(state);
 });
 
 api.get("/contacts/new", ctx => {
-	ctx.response.body = "hi";
+	const contact: Contact = {
+		first: "",
+		last: "",
+		phone: "",
+		email: "",
+		id: "",
+	};
+
+	ctx.response.body = rNewContact(contact);
+});
+
+api.post("/contacts/new", async ctx => {
+	const form = await ctx.request.body({ type: "form" }).value;
+	// console.log(form.get("email"));
+	const contact: Contact = {
+		first: form.get("first_name") || "",
+		last: form.get("last_name") || "",
+		phone: form.get("phone") || "",
+		email: form.get("email") || "",
+		id: "",
+	};
+
+	console.log(contact);
+	// attempt to store contact
+
+	if (false) {
+		ctx.response.redirect("/contacts");
+	} else {
+		ctx.response.body = rNewContact(contact);
+	}
 });
 
 app.use(api.routes());

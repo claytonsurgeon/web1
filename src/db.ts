@@ -6,6 +6,8 @@ export interface Contact {
 	phone: string;
 	email: string;
 	id: string;
+
+	errors?: Record<string, string>;
 }
 
 export type Contacts = Record<string, Contact>;
@@ -46,3 +48,29 @@ export const contact_all = (): Contacts => {
 		},
 	};
 };
+
+// export const createContact = async (
+// 	contact: Contact,
+// ): Promise<Contact> => {
+// 	if (!id || !contact) {
+// 		throw new Error("A slug and destination is required");
+// 	}
+
+// 	const key = ["contacts", id];
+// 	const value: Contact = {
+// 		slug,
+// 		destination,
+// 	};
+
+// 	// const res = await kv.set(key, value);
+// 	const res = await kv.atomic()
+// 		.check({ key, versionstamp: null })
+// 		.set(key, value)
+// 		.commit();
+
+// 	if (res.ok) {
+// 		return value;
+// 	} else {
+// 		throw new Error("Could not create link");
+// 	}
+// };

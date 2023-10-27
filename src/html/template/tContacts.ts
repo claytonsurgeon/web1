@@ -1,7 +1,7 @@
-import { Contacts } from "../db.ts";
-import { rHTML } from "./rHTML.ts";
+import { Contacts } from "/db.ts";
+import { rHTML } from "/html/rHTML.ts";
 
-export const rForm = (contacts: Contacts, q = ""): string => {
+export const tForm = (contacts: Contacts, q = ""): string => {
 	return `
 <form action="/contacts" method="get" class="tool-bar">
 	<label for="search">Search Term</label>
@@ -11,7 +11,7 @@ export const rForm = (contacts: Contacts, q = ""): string => {
 	`;
 };
 
-export const rTable = (contacts: Contacts): string => {
+export const tTable = (contacts: Contacts): string => {
 	let rows = "";
 
 	for (const id in contacts) {
@@ -41,7 +41,7 @@ export const rTable = (contacts: Contacts): string => {
 	`;
 };
 
-export const rAddContact = (): string => {
+export const tAddContact = (): string => {
 	return `
 <p>
 	<a href="/contacts/new">Add Contact</a>
@@ -49,5 +49,5 @@ export const rAddContact = (): string => {
 	`;
 };
 
-export const rContacts = (contacts: Contacts, q = ""): string =>
-	rForm(contacts, q) + rTable(contacts) + rAddContact();
+export const tContacts = (contacts: Contacts, q = ""): string =>
+	tForm(contacts, q) + tTable(contacts) + tAddContact();
