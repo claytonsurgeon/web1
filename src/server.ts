@@ -9,6 +9,7 @@ import {
 	deleteContact,
 } from "/db.ts";
 import { State } from "/state.ts";
+import { rIndex } from "/html/route/rIndex.ts";
 import { rContacts } from "/html/route/rContacts.ts";
 import { rNewContact } from "/html/route/rNewContact.ts";
 import { rShow } from "/html/route/rShow.ts";
@@ -18,6 +19,7 @@ const app = new Application();
 const api = new Router();
 
 api.get("/", ctx => {
+	// ctx.response.body = rIndex();
 	ctx.response.redirect("/contacts");
 });
 
@@ -121,8 +123,8 @@ app.use(api.routes());
 
 app.use(async (context, next) => {
 	try {
-		console.log(context.request.url.pathname);
-		console.log(`${Deno.cwd()}/src/static`);
+		// console.log(context.request.url.pathname);
+		// console.log(`${Deno.cwd()}/src/static`);
 		await context.send({
 			path: context.request.url.pathname,
 			root: `${Deno.cwd()}/src/static`,

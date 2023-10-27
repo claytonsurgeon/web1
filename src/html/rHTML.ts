@@ -21,8 +21,13 @@ export const rHTML = (main: string): string => {
 		<link rel="stylesheet" href="/css/global.css">
 		<link rel="stylesheet" href="/css/color.css">
 		<link rel="stylesheet" href="/css/style.css">
+		<script
+			src="https://unpkg.com/htmx.org@1.9.6"
+			integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+			crossorigin="anonymous">
+		</script>
 	</head>
-	<body>
+	<body hx-boost="true">
 		<main>
 			<header>
 				<h1>
@@ -30,6 +35,11 @@ export const rHTML = (main: string): string => {
 					<sub-title>A Demo Contacts Application</sub-title>
 				</h1>
 			</header>
+			<div>
+				<a href="/contacts">Contacts</a>
+				<a href="/settings">Settings</a>
+				<a href="/help">Help</a>
+			</div>
 			${main}
 		</main>
 	</body>
