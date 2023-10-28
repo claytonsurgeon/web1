@@ -1,3 +1,5 @@
+// import "../window.ts";
+
 import { Application, Router } from "oak";
 import {
 	Contact,
@@ -16,7 +18,7 @@ import { rNewContact } from "/html/route/rNewContact.ts";
 import { rShow } from "/html/route/rShow.ts";
 import { rEdit } from "/html/route/rEdit.ts";
 
-const app = new Application();
+export const app = new Application();
 const api = new Router();
 
 app.use(async (context, next) => {
@@ -37,10 +39,16 @@ api.get("/", ctx => {
 
 api.get("/contacts", async ctx => {
 	const q = ctx.request.url.searchParams.get("q") || "";
+	const page = Number(ctx.request.url.searchParams.get("page") || "0");
+
+	const contacts = q ? contact_search(q) : await contact_all();
+	const count = Object.keys(contacts).length;
 
 	const state: State = {
 		q,
-		contacts: q ? contact_search(q) : await contact_all(),
+		page,
+		count,
+		contacts,
 	};
 
 	ctx.response.body = rContacts(state);
@@ -185,6 +193,3 @@ app.addEventListener("listen", ({ hostname, port, secure }) => {
 		`Listening on: ${secure ? "https://" : "http://"}${hostname ?? "localhost"}:${port}`
 	);
 });
-
-// await app.listen({ port: 8000 });
-await app.listen({ hostname: "0.0.0.0", port: 8000 });

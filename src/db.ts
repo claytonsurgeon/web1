@@ -12,6 +12,39 @@ export interface Contact {
 
 export type Contacts = Record<string, Contact>;
 
+export const alphabetizeContacts = async () => {
+	const timestamp = ((await kv.get(["alphabetized-contacts-last-sync"])).value as number) || 0;
+	const diff = (Date.now() - timestamp) / 1000;
+
+	console.log({ diff });
+	if (diff < 10) return;
+	console.log("alphabetizing contacts");
+	await kv.set(["alphabetized-contacts-last-sync"], Date.now());
+
+	const contacts: Contacts = {};
+
+	const entries = kv.list<Contact>({ prefix: ["contacts"] });
+	for await (const entry of entries) {
+		const contact = entry.value;
+		contacts[contact.id] = contact;
+	}
+
+	const keys = Object.keys(contacts).sort((a, b) =>
+		contacts[a].first.localeCompare(contacts[b].first)
+	);
+
+	for (const key of keys) {
+	}
+};
+
+alphabetizeContacts();
+
+export const getContacts = (start: number, limit: number) => {
+	const contacts: Contacts = {};
+
+	const entries = kv.list({ prefix: ["contacts"], start: ["contacts", start] }, { limit });
+};
+
 export const contact_search = (_q: string): Contacts => {
 	return {
 		"123": {
@@ -25,6 +58,7 @@ export const contact_search = (_q: string): Contacts => {
 		},
 	};
 };
+
 export const contact_all = async (): Promise<Contacts> => {
 	const contacts: Contacts = {};
 
@@ -33,6 +67,11 @@ export const contact_all = async (): Promise<Contacts> => {
 		const contact = entry.value as Contact;
 		contacts[contact.id] = contact;
 	}
+
+	// const encoder = new TextEncoder();
+	// const data = encoder.encode(JSON.stringify(contacts, null, 3));
+	// Deno.writeFile("./databackup.json", data);
+
 	return contacts;
 	// return {
 	// 	"123": {
