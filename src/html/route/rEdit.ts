@@ -10,7 +10,16 @@ export const rEdit = (contact: Contact): string =>
 		<legend>Contact Values</legend>
 			<p>
 				<label for="email">Email</label>
-				<input name="email" id="email" type="email" placeholder="Email" value="${contact.email}">
+				<input
+					name="email"
+					id="email"
+					type="email"
+					placeholder="Email"
+					value="${contact.email}"
+					
+					hx-get="/contacts/validate-email/${contact.id}"
+					hx-target="next .error"
+				>
 				<span class="error">${contact.errors?.email || ""}</span>
 			</p>
 			<p>
@@ -34,9 +43,12 @@ export const rEdit = (contact: Contact): string =>
 	</fieldset>
 </form>
 
-<form action="/contacts/${contact.id}/delete" method="post">
-	<button>Delete Contact</button>
-</form>
+<button	hx-delete="/contacts/${contact.id}"
+			hx-push-url="true"
+			hx-confirm="Are you sure you want to delete this contact?"
+			hx-target="body">
+	Delete Contact
+</button>
 
 <p>
 	<a href="/contacts">Back</a>

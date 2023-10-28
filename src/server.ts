@@ -7,6 +7,7 @@ import {
 	getContact,
 	updateContact,
 	deleteContact,
+	validateEmail,
 } from "/db.ts";
 import { State } from "/state.ts";
 import { rIndex } from "/html/route/rIndex.ts";
@@ -17,6 +18,17 @@ import { rEdit } from "/html/route/rEdit.ts";
 
 const app = new Application();
 const api = new Router();
+
+app.use(async (context, next) => {
+	if (!context.request.url.pathname.includes("css")) {
+		console.log(
+			`[${new Date().toLocaleTimeString()}] ${context.request.method} ${
+				context.request.url.pathname
+			}`
+		);
+	}
+	await next(); // Important: This line calls the next middleware in the stack.
+});
 
 api.get("/", ctx => {
 	// ctx.response.body = rIndex();
@@ -32,6 +44,16 @@ api.get("/contacts", async ctx => {
 	};
 
 	ctx.response.body = rContacts(state);
+});
+
+api.get("/contacts/validate-email/:id?", async ctx => {
+	const email = ctx.request.url.searchParams.get("email") || "";
+
+	const email_validation_error = await validateEmail(email, ctx.params.id);
+
+	console.log({ email, email_validation_error });
+
+	ctx.response.body = email_validation_error;
 });
 
 api.get("/contacts/new", ctx => {
@@ -82,6 +104,25 @@ api.get("/contacts/:uuid", async ctx => {
 	}
 });
 
+// api.get("/contacts/-/email", async ctx => {
+// 	const email = ctx.request.url.searchParams.get("email") || "";
+
+// 	const email_validation_error = await validateEmail(email);
+
+// 	console.log({ email, email_validation_error });
+
+// 	ctx.response.body = email_validation_error;
+// });
+// api.get("/contacts/:uuid/email", async ctx => {
+// 	const email = ctx.request.url.searchParams.get("email") || "";
+
+// 	const email_validation_error = await validateEmail(email, ctx.params.uuid);
+
+// 	console.log({ email, email_validation_error });
+
+// 	ctx.response.body = email_validation_error;
+// });
+
 api.get("/contacts/:uuid/edit", async ctx => {
 	const contact = await getContact(ctx.params.uuid);
 
@@ -112,8 +153,10 @@ api.post("/contacts/:uuid/edit", async ctx => {
 	ctx.response.redirect(`/contacts/${contact.id}`);
 });
 
-api.post("/contacts/:uuid/delete", async ctx => {
+api.delete("/contacts/:uuid", async ctx => {
 	deleteContact(ctx.params.uuid);
+
+	ctx.response.status = 303;
 	ctx.response.redirect(`/contacts`);
 });
 

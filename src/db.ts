@@ -68,6 +68,20 @@ export const getContact = async (id: string): Promise<Contact | null> => {
 	return null;
 };
 
+export const validateEmail = async (email: string, id = ""): Promise<string> => {
+	if (!email.includes("@")) {
+		return "invalid email format";
+	}
+	const entries = kv.list({ prefix: ["contacts"] });
+	for await (const entry of entries) {
+		const contact = entry.value as Contact;
+		if (contact.id == id) continue;
+		if (contact.email == email) return "email is already registered";
+	}
+
+	return "";
+};
+
 export const createContact = async (contact: Contact): Promise<Contact> => {
 	contact.errors = {};
 
@@ -80,6 +94,11 @@ export const createContact = async (contact: Contact): Promise<Contact> => {
 	if (!contact.email) {
 		contact.errors.email = "An email is required";
 	}
+	const email_validation_error = await validateEmail(contact.email);
+	if (email_validation_error) {
+		contact.errors.email = email_validation_error;
+	}
+
 	if (!contact.phone) {
 		contact.errors.phone = "A phone number is required";
 	}
@@ -118,6 +137,12 @@ export const updateContact = async (contact: Contact): Promise<Contact> => {
 	if (!contact.email) {
 		contact.errors.email = "An email is required";
 	}
+
+	const email_validation_error = await validateEmail(contact.email, contact.id);
+	if (email_validation_error) {
+		contact.errors.email = email_validation_error;
+	}
+
 	if (!contact.phone) {
 		contact.errors.phone = "A phone number is required";
 	}

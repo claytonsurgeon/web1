@@ -10,10 +10,20 @@ const tForm = (contact: Contact) => {
 	return `
 <form action="/contacts/new" method="post">
 	<fieldset>
-		<legend>Contact Values</legend>
+		<legend>Contact Values</legend>			
 			<p>
 				<label for="email">Email</label>
-				<input name="email" id="email" type="email" placeholder="Email" value="${contact.email}">
+				<input
+					name="email"
+					id="email"
+					type="email"
+					placeholder="Email"
+					value="${contact.email}"
+					
+					hx-get="/contacts/validate-email"
+					hx-target="next .error"
+					hx-trigger="input delay:500ms"
+				>
 				<span class="error">${contact.errors?.email || ""}</span>
 			</p>
 			<p>
