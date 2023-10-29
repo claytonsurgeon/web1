@@ -42,13 +42,14 @@ export const alphabetizeContacts = async (force = false) => {
 		batch.set(["alphabetized-contacts", i], key);
 		i++;
 	}
+	batch.set(["contacts-count"], keys.length);
 
 	await batch.commit();
 };
 
 alphabetizeContacts();
 
-export const getContacts = async (start: number, limit: number): Promise<Contacts> => {
+export const getContacts = async (start: number, limit: number): Promise<[Contacts, number]> => {
 	const contacts: Contacts = {};
 	const keys: string[] = [];
 
@@ -72,7 +73,9 @@ export const getContacts = async (start: number, limit: number): Promise<Contact
 		}
 	}
 
-	return contacts;
+	const count = (await kv.get<number>(["contacts-count"])).value || 0;
+
+	return [contacts, count];
 };
 
 export const contact_search = (_q: string): Contacts => {

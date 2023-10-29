@@ -44,8 +44,7 @@ api.get("/contacts", async ctx => {
 
 	// const contacts = q ? contact_search(q) : await contact_all();
 	// const count = Object.keys(contacts).length;
-	const count = 100;
-	const contacts = await getContacts(page * 8, 8);
+	const [contacts, count] = await getContacts(page * 8, 8);
 
 	const state: State = {
 		q,
