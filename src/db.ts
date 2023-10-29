@@ -12,12 +12,15 @@ export interface Contact {
 
 export type Contacts = Record<string, Contact>;
 
-export const alphabetizeContacts = async () => {
-	const timestamp = ((await kv.get(["alphabetized-contacts-last-sync"])).value as number) || 0;
+//should be throttled at 10 minutes using queue
+export const alphabetizeContacts = async (force = false) => {
+	const timestamp = (await kv.get<number>(["alphabetized-contacts-last-sync"])).value || 0;
+	console.log({ timestamp });
 	const diff = (Date.now() - timestamp) / 1000;
 
 	console.log({ diff });
-	if (diff < 10) return;
+	// return;
+	if (!force && diff < 60 * 10) return;
 	console.log("alphabetizing contacts");
 	await kv.set(["alphabetized-contacts-last-sync"], Date.now());
 
@@ -33,16 +36,43 @@ export const alphabetizeContacts = async () => {
 		contacts[a].first.localeCompare(contacts[b].first)
 	);
 
+	let i = 0;
+	const batch = kv.atomic();
 	for (const key of keys) {
+		batch.set(["alphabetized-contacts", i], key);
+		i++;
 	}
+
+	await batch.commit();
 };
 
 alphabetizeContacts();
 
-export const getContacts = (start: number, limit: number) => {
+export const getContacts = async (start: number, limit: number): Promise<Contacts> => {
 	const contacts: Contacts = {};
+	const keys: string[] = [];
 
-	const entries = kv.list({ prefix: ["contacts"], start: ["contacts", start] }, { limit });
+	const entries = kv.list<string>(
+		{ prefix: ["alphabetized-contacts"], start: ["alphabetized-contacts", start] },
+		{ limit }
+	);
+
+	for await (const entry of entries) {
+		// console.log(entry.value);
+		keys.push(entry.value);
+	}
+
+	const batch = await kv.getMany<Contact[]>(keys.map(key => ["contacts", key]));
+
+	// console.log(batch);
+
+	for (const contact of batch) {
+		if (contact.value) {
+			contacts[contact.value.id] = contact.value;
+		}
+	}
+
+	return contacts;
 };
 
 export const contact_search = (_q: string): Contacts => {

@@ -10,6 +10,7 @@ import {
 	updateContact,
 	deleteContact,
 	validateEmail,
+	getContacts,
 } from "/db.ts";
 import { State } from "/state.ts";
 import { rIndex } from "/html/route/rIndex.ts";
@@ -41,8 +42,10 @@ api.get("/contacts", async ctx => {
 	const q = ctx.request.url.searchParams.get("q") || "";
 	const page = Number(ctx.request.url.searchParams.get("page") || "0");
 
-	const contacts = q ? contact_search(q) : await contact_all();
-	const count = Object.keys(contacts).length;
+	// const contacts = q ? contact_search(q) : await contact_all();
+	// const count = Object.keys(contacts).length;
+	const count = 100;
+	const contacts = await getContacts(page * 8, 8);
 
 	const state: State = {
 		q,
