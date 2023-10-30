@@ -78,18 +78,44 @@ export const getContacts = async (start: number, limit: number): Promise<[Contac
 	return [contacts, count];
 };
 
-export const contact_search = (_q: string): Contacts => {
-	return {
-		"123": {
-			first: "John",
-			last: "Smith",
-			phone: "(123) 456 7890",
-			email: "john@example.com",
-			id: "123",
+export const contact_search = async (q: string): Promise<Contacts> => {
+	const contacts: Contacts = {};
 
-			errors: {},
-		},
-	};
+	const entries = kv.list<Contact>({ prefix: ["contacts"] });
+
+	for await (const entry of entries) {
+		// console.log(entry.value);
+		if (entry.value) {
+			if (
+				entry.value.email.toLowerCase().includes(q) ||
+				entry.value.first.toLowerCase().includes(q) ||
+				entry.value.last.toLowerCase().includes(q)
+			) {
+				contacts[entry.value.id] = entry.value;
+			}
+		}
+	}
+
+	// for (const id in batch) {
+	// 	const contact =
+	// 	if (contact.value) {
+	// 		contacts[contact.value.id] = contact.value;
+	// 	}
+	// }
+
+	return contacts;
+
+	// return {
+	// 	"123": {
+	// 		first: "John",
+	// 		last: "Smith",
+	// 		phone: "(123) 456 7890",
+	// 		email: "john@example.com",
+	// 		id: "123",
+
+	// 		errors: {},
+	// 	},
+	// };
 };
 
 export const contact_all = async (): Promise<Contacts> => {

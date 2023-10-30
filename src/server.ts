@@ -14,7 +14,7 @@ import {
 } from "/db.ts";
 import { State } from "/state.ts";
 import { rIndex } from "/html/route/rIndex.ts";
-import { rContacts } from "/html/route/rContacts.ts";
+import { rContacts, tRows } from "/html/route/rContacts.ts";
 import { rNewContact } from "/html/route/rNewContact.ts";
 import { rShow } from "/html/route/rShow.ts";
 import { rEdit } from "/html/route/rEdit.ts";
@@ -39,21 +39,43 @@ api.get("/", ctx => {
 });
 
 api.get("/contacts", async ctx => {
-	const q = ctx.request.url.searchParams.get("q") || "";
+	const q = ctx.request.url.searchParams.get("q")?.toLowerCase() || "";
 	const page = Number(ctx.request.url.searchParams.get("page") || "0");
+
+	if (q) {
+		const contacts = await contact_search(q);
+		const state: State = {
+			q,
+			page,
+			count: 0,
+			contacts,
+		};
+
+		if (ctx.request.headers.get("hx-trigger") == "search") {
+			ctx.response.body = tRows(contacts);
+			// ctx.response.body = rContacts(state);
+		} else {
+			ctx.response.body = rContacts(state);
+		}
+	} else {
+		const [contacts, count] = await getContacts(page * 8, 8);
+
+		const state: State = {
+			q,
+			page,
+			count,
+			contacts,
+		};
+
+		if (ctx.request.headers.get("hx-trigger") == "search") {
+			ctx.response.body = tRows(contacts);
+		} else {
+			ctx.response.body = rContacts(state);
+		}
+	}
 
 	// const contacts = q ? contact_search(q) : await contact_all();
 	// const count = Object.keys(contacts).length;
-	const [contacts, count] = await getContacts(page * 8, 8);
-
-	const state: State = {
-		q,
-		page,
-		count,
-		contacts,
-	};
-
-	ctx.response.body = rContacts(state);
 });
 
 api.get("/contacts/validate-email/:id?", async ctx => {
