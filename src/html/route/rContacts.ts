@@ -1,9 +1,11 @@
 import { rHTML } from "../rHTML.ts";
 import { Contacts, State } from "../../types.ts";
+import { Archiver } from "../../archiver.ts";
 
-export const rContacts = (state: State): string => {
+export const rContacts = (state: State, archiver: Archiver): string => {
 	return rHTML(
 		tForm(state.q) +
+			tArchiveUI(archiver) +
 			tTable(state.contacts, state.count, state.page) +
 			tAddContact(state.count) +
 			tPaging(state.count, state.page)
@@ -33,6 +35,42 @@ const tForm = (q = ""): string => {
 			/>
 		</form>
 	`;
+};
+
+export const tArchiveUI = (archiver: Archiver): string => {
+	const status = archiver.status();
+
+	let content = "";
+
+	if (status == "waiting") {
+		content = html` <button hx-post="/contacts/archive">Download Contact Archive</button> `;
+	} else if (status == "running") {
+		content = html`
+			<div hx-get="/contacts/archive" hx-trigger="load delay:500ms">
+				Creating Archive...
+				<div class="progress">
+					<div
+						id="archive-progress"
+						class="progress-bar"
+						role="progressbar"
+						aria-valuenow="${archiver.progress() * 100}"
+						style="width:${archiver.progress() * 100}%"
+					></div>
+				</div>
+			</div>
+		`;
+	} else if (status == "complete") {
+		content = html`
+			<a hx-boost="false" href="/contacts/archive/file"
+				>Archive Ready! Click here to download. &downarrow;</a
+			>
+			<button hx-delete="/contacts/archive">Clear Download</button>
+		`;
+	}
+
+	return html` <div id="archive-ui" hx-target="this" hx-swap="outerHTML">${content}</div> `;
+
+	// `;
 };
 
 const tTable = (contacts: Contacts, count: number, page: number): string => {
@@ -84,6 +122,7 @@ const tTable = (contacts: Contacts, count: number, page: number): string => {
 			>
 				Delete Selected Contacts
 			</button>
+
 			<table>
 				<thead>
 					<tr>

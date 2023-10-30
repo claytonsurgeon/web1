@@ -3,7 +3,6 @@
 import { Application, Router } from "oak";
 import { Contact, Contacts, State } from "./types.ts";
 import {
-	contact_all,
 	contact_search,
 	createContact,
 	getContact,
@@ -12,13 +11,15 @@ import {
 	validateEmail,
 	getContacts,
 	getContactsCount,
+	allContacts,
 } from "./db.ts";
 
 import { rIndex } from "./html/route/rIndex.ts";
-import { rContacts, tRows } from "./html/route/rContacts.ts";
+import { rContacts, tArchiveUI, tRows } from "./html/route/rContacts.ts";
 import { rNewContact } from "./html/route/rNewContact.ts";
 import { rShow } from "./html/route/rShow.ts";
 import { rEdit } from "./html/route/rEdit.ts";
+import { ARCHIVER } from "./archiver.ts";
 
 export const app = new Application();
 const api = new Router();
@@ -43,6 +44,8 @@ api.get("/contacts", async ctx => {
 	const q = ctx.request.url.searchParams.get("q")?.toLowerCase() || "";
 	const page = Number(ctx.request.url.searchParams.get("page") || "0");
 
+	const archiver = ARCHIVER;
+
 	if (q) {
 		const contacts = await contact_search(q);
 		const state: State = {
@@ -56,7 +59,7 @@ api.get("/contacts", async ctx => {
 			ctx.response.body = tRows(contacts);
 			// ctx.response.body = rContacts(state);
 		} else {
-			ctx.response.body = rContacts(state);
+			ctx.response.body = rContacts(state, archiver);
 		}
 	} else {
 		const contacts = await getContacts(page * 8, 8);
@@ -72,7 +75,7 @@ api.get("/contacts", async ctx => {
 		if (ctx.request.headers.get("hx-trigger") == "search-input") {
 			ctx.response.body = tRows(contacts);
 		} else {
-			ctx.response.body = rContacts(state);
+			ctx.response.body = rContacts(state, archiver);
 		}
 	}
 
@@ -97,6 +100,34 @@ api.delete("/contacts", async ctx => {
 	// } else {
 	// 	ctx.response.body = "";
 	// }
+});
+
+api.post("/contacts/archive", async ctx => {
+	const archiver = ARCHIVER;
+	archiver.run();
+
+	console.log("[server]");
+	ctx.response.body = tArchiveUI(archiver);
+});
+
+api.get("/contacts/archive", async ctx => {
+	const archiver = ARCHIVER;
+	ctx.response.body = tArchiveUI(archiver);
+});
+
+api.delete("/contacts/archive", async ctx => {
+	const archiver = ARCHIVER;
+	archiver.reset();
+	ctx.response.body = tArchiveUI(archiver);
+});
+
+api.get("/contacts/archive/file", async ctx => {
+	// Set the response headers to indicate file download
+	ctx.response.headers.set("Content-Disposition", "attachment; filename=contacts.json");
+
+	// Use the Oak `send` function to serve the file for download.
+	//  await send(ctx, "data.json");
+	ctx.response.body = JSON.stringify(await allContacts(), null, 3);
 });
 
 api.get("/contacts/count", async ctx => {

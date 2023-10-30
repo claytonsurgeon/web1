@@ -1,5 +1,5 @@
 export class Archiver {
-	private STATUS = "Waiting";
+	private STATUS = "waiting";
 	private PROGRESS = 0;
 	private WORKER: Worker | null = null;
 
@@ -12,9 +12,9 @@ export class Archiver {
 	}
 
 	run() {
-		if (this.STATUS != "Waiting") return;
+		if (this.STATUS != "waiting") return;
 
-		this.STATUS = "Running";
+		this.STATUS = "running";
 		this.PROGRESS = 0;
 		this.WORKER = new Worker(new URL("./workers/archive.ts", import.meta.url).href, {
 			type: "module",
@@ -22,24 +22,28 @@ export class Archiver {
 
 		this.WORKER.postMessage({ command: "start" });
 		this.WORKER.onmessage = e => {
-			console.log(e);
-		};
-	}
+			console.log("[master]", e.data);
 
-	async run_impl() {
-		// const proms =
-		for (let i = 0; i < 10; i++) {
-			await new Promise(res => {
-				setTimeout(() => res(null), 1000);
-			});
-		}
+			// ignore superfluous messages
+			if (e.data.status) {
+				this.PROGRESS = e.data.progress;
+				this.STATUS = e.data.status;
+
+				if (e.data.status == "complete") {
+					// this.reset();
+				}
+			}
+		};
 	}
 
 	archive_file() {}
 
 	reset() {
-		this.STATUS = "Waiting";
 		this.WORKER?.terminate();
 		this.WORKER = null;
+		this.STATUS = "waiting";
+		this.PROGRESS = 0;
 	}
 }
+
+export const ARCHIVER = new Archiver();

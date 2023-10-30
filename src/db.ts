@@ -110,7 +110,46 @@ export const contact_search = async (q: string): Promise<Contacts> => {
 	// };
 };
 
-export const contact_all = async (): Promise<Contacts> => {
+// export const contact_all = async (): Promise<Contacts> => {
+// 	const contacts: Contacts = {};
+
+// 	const entries = kv.list({ prefix: ["contacts"] });
+// 	for await (const entry of entries) {
+// 		const contact = entry.value as Contact;
+// 		contacts[contact.id] = contact;
+// 	}
+
+// 	// const encoder = new TextEncoder();
+// 	// const data = encoder.encode(JSON.stringify(contacts, null, 3));
+// 	// Deno.writeFile("./databackup.json", data);
+
+// 	return contacts;
+// 	// return {
+// 	// 	"123": {
+// 	// 		first: "John",
+// 	// 		last: "Smith",
+// 	// 		phone: "(123) 456 7890",
+// 	// 		email: "john@example.com",
+// 	// 		id: "123",
+// 	// 	},
+// 	// 	"456": {
+// 	// 		first: "Dana",
+// 	// 		last: "Crandith",
+// 	// 		phone: "(123) 456 7890",
+// 	// 		email: "dcran@example.com",
+// 	// 		id: "456",
+// 	// 	},
+// 	// 	"789": {
+// 	// 		first: "Edith",
+// 	// 		last: "Neutvaar",
+// 	// 		phone: "(123) 456 7890",
+// 	// 		email: "en@example.com",
+// 	// 		id: "789",
+// 	// 	},
+// 	// };
+// };
+
+export const allContacts = async (): Promise<Contacts> => {
 	const contacts: Contacts = {};
 
 	const entries = kv.list({ prefix: ["contacts"] });
@@ -119,34 +158,7 @@ export const contact_all = async (): Promise<Contacts> => {
 		contacts[contact.id] = contact;
 	}
 
-	// const encoder = new TextEncoder();
-	// const data = encoder.encode(JSON.stringify(contacts, null, 3));
-	// Deno.writeFile("./databackup.json", data);
-
 	return contacts;
-	// return {
-	// 	"123": {
-	// 		first: "John",
-	// 		last: "Smith",
-	// 		phone: "(123) 456 7890",
-	// 		email: "john@example.com",
-	// 		id: "123",
-	// 	},
-	// 	"456": {
-	// 		first: "Dana",
-	// 		last: "Crandith",
-	// 		phone: "(123) 456 7890",
-	// 		email: "dcran@example.com",
-	// 		id: "456",
-	// 	},
-	// 	"789": {
-	// 		first: "Edith",
-	// 		last: "Neutvaar",
-	// 		phone: "(123) 456 7890",
-	// 		email: "en@example.com",
-	// 		id: "789",
-	// 	},
-	// };
 };
 
 export const getContact = async (id: string): Promise<Contact | null> => {
