@@ -1,11 +1,10 @@
-import { State } from "/state.ts";
 import { rHTML } from "../rHTML.ts";
-import { Contacts } from "/db.ts";
+import { Contacts, State } from "../../types.ts";
 
 export const rContacts = (state: State): string => {
 	return rHTML(
 		tForm(state.q) +
-			tTable(state.contacts, state.q, state.count, state.page) +
+			tTable(state.contacts, state.count, state.page) +
 			tAddContact(state.count) +
 			tPaging(state.count, state.page)
 	);
@@ -13,9 +12,9 @@ export const rContacts = (state: State): string => {
 const tForm = (q = ""): string => {
 	return html`
 		<form action="/contacts" method="get" class="tool-bar">
-			<label for="search">Search Term</label>
+			<label for="search-input">Search Term</label>
 			<input
-				id="search"
+				id="search-input"
 				type="search"
 				name="q"
 				value="${q}"
@@ -36,7 +35,7 @@ const tForm = (q = ""): string => {
 	`;
 };
 
-const tTable = (contacts: Contacts, q: string | undefined, count: number, page: number): string => {
+const tTable = (contacts: Contacts, count: number, page: number): string => {
 	console.log({ page, count });
 
 	const more =
@@ -77,21 +76,31 @@ const tTable = (contacts: Contacts, q: string | undefined, count: number, page: 
 	// 		  `;
 
 	return html`
-		<table>
-			<thead>
-				<tr>
-					<th>First</th>
-					<th>Last</th>
+		<form>
+			<button
+				hx-delete="/contacts"
+				hx-confirm="Are you sure you want to delete these contacts?"
+				hx-target="body"
+			>
+				Delete Selected Contacts
+			</button>
+			<table>
+				<thead>
+					<tr>
+						<th>Select</th>
+						<th>First</th>
+						<th>Last</th>
 
-					<th>Phone</th>
-					<th>Email</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				${tRows(contacts)} ${more}
-			</tbody>
-		</table>
+						<th>Phone</th>
+						<th>Email</th>
+						<th>Options</th>
+					</tr>
+				</thead>
+				<tbody>
+					${tRows(contacts)} ${more}
+				</tbody>
+			</table>
+		</form>
 	`;
 };
 
@@ -101,6 +110,7 @@ export const tRows = (contacts: Contacts): string => {
 	for (const id in contacts) {
 		const contact = contacts[id];
 		rows += html` <tr>
+			<td><input type="checkbox" name="selected_contact_ids" value="${contact.id}" /></td>
 			<td>${contact.first}</td>
 			<td>${contact.last}</td>
 			<td>${contact.phone}</td>
@@ -108,6 +118,14 @@ export const tRows = (contacts: Contacts): string => {
 			<td>
 				<a href="/contacts/${contact.id}/edit">Edit</a>
 				<a href="/contacts/${id}">View</a>
+				<a
+					href="#"
+					hx-swap="outerHTML swap:1s"
+					hx-delete="/contacts/${contact.id}"
+					hx-confirm="Are you sure you want to delete this contact?"
+					hx-target="closest tr"
+					>Delete</a
+				>
 			</td>
 		</tr>`;
 	}
@@ -117,7 +135,13 @@ export const tRows = (contacts: Contacts): string => {
 
 const tAddContact = (count: number): string => {
 	return html`
-		<p><a href="/contacts/new">Add Contact</a> <span>(${count} total Contacts)</span></p>
+		<p>
+			<a href="/contacts/new">Add Contact</a>
+			<span hx-get="/contacts/count" hx-trigger="revealed">
+				(totaling contacts...)
+				<img id="spinner" class="htmx-indicator" src="/img/spinning-circles.svg" />
+			</span>
+		</p>
 	`;
 };
 

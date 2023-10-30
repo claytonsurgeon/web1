@@ -42,11 +42,15 @@ input,
 select,
 textarea {
 	margin: 0;
-	-webkit-appearance: none; /* fix padding on iOS inputs*/
+	/* fix padding on iOS inputs*/
+	-webkit-appearance: none;
 
 	font-family: inherit;
 	font-size: 1rem;
 	line-height: 1.5;
+}
+input[type="checkbox"] {
+	-webkit-appearance: checkbox;
 }
 
 /* *::before,

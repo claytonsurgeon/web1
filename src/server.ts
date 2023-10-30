@@ -1,8 +1,8 @@
 // import "../window.ts";
 
 import { Application, Router } from "oak";
+import { Contact, Contacts, State } from "./types.ts";
 import {
-	Contact,
 	contact_all,
 	contact_search,
 	createContact,
@@ -11,13 +11,14 @@ import {
 	deleteContact,
 	validateEmail,
 	getContacts,
-} from "/db.ts";
-import { State } from "/state.ts";
-import { rIndex } from "/html/route/rIndex.ts";
-import { rContacts, tRows } from "/html/route/rContacts.ts";
-import { rNewContact } from "/html/route/rNewContact.ts";
-import { rShow } from "/html/route/rShow.ts";
-import { rEdit } from "/html/route/rEdit.ts";
+	getContactsCount,
+} from "./db.ts";
+
+import { rIndex } from "./html/route/rIndex.ts";
+import { rContacts, tRows } from "./html/route/rContacts.ts";
+import { rNewContact } from "./html/route/rNewContact.ts";
+import { rShow } from "./html/route/rShow.ts";
+import { rEdit } from "./html/route/rEdit.ts";
 
 export const app = new Application();
 const api = new Router();
@@ -51,14 +52,15 @@ api.get("/contacts", async ctx => {
 			contacts,
 		};
 
-		if (ctx.request.headers.get("hx-trigger") == "search") {
+		if (ctx.request.headers.get("hx-trigger") == "search-input") {
 			ctx.response.body = tRows(contacts);
 			// ctx.response.body = rContacts(state);
 		} else {
 			ctx.response.body = rContacts(state);
 		}
 	} else {
-		const [contacts, count] = await getContacts(page * 8, 8);
+		const contacts = await getContacts(page * 8, 8);
+		const count = await getContactsCount();
 
 		const state: State = {
 			q,
@@ -67,7 +69,7 @@ api.get("/contacts", async ctx => {
 			contacts,
 		};
 
-		if (ctx.request.headers.get("hx-trigger") == "search") {
+		if (ctx.request.headers.get("hx-trigger") == "search-input") {
 			ctx.response.body = tRows(contacts);
 		} else {
 			ctx.response.body = rContacts(state);
@@ -76,6 +78,34 @@ api.get("/contacts", async ctx => {
 
 	// const contacts = q ? contact_search(q) : await contact_all();
 	// const count = Object.keys(contacts).length;
+});
+
+api.delete("/contacts", async ctx => {
+	// deleteContact(ctx.params.uuid);
+	const form = await ctx.request.body({ type: "form" }).value;
+	console.log("deleting", form.getAll("selected_contact_ids"));
+	const ids = form.getAll("selected_contact_ids");
+
+	await Promise.all(ids.map(deleteContact));
+
+	ctx.response.status = 303;
+	ctx.response.redirect(`/contacts`);
+
+	// if (ctx.request.headers.get("HX-Trigger") == "delete btn") {
+	// 	ctx.response.status = 303;
+	// 	ctx.response.redirect(`/contacts`);
+	// } else {
+	// 	ctx.response.body = "";
+	// }
+});
+
+api.get("/contacts/count", async ctx => {
+	const count = await getContactsCount();
+	// await new Promise(res => {
+	// 	setTimeout(() => res(null), 5000);
+	// });
+
+	ctx.response.body = `(${count} total Contacts)`;
 });
 
 api.get("/contacts/validate-email/:id?", async ctx => {
@@ -188,8 +218,12 @@ api.post("/contacts/:uuid/edit", async ctx => {
 api.delete("/contacts/:uuid", async ctx => {
 	deleteContact(ctx.params.uuid);
 
-	ctx.response.status = 303;
-	ctx.response.redirect(`/contacts`);
+	if (ctx.request.headers.get("HX-Trigger") == "delete btn") {
+		ctx.response.status = 303;
+		ctx.response.redirect(`/contacts`);
+	} else {
+		ctx.response.body = "";
+	}
 });
 
 //

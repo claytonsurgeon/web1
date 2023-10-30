@@ -27,6 +27,9 @@ tr.htmx-swapping {
 td {
 	vertical-align: middle;
 }
+th {
+	text-align: left;
+}
 
 #download-ui {
 	margin-bottom: 16px;

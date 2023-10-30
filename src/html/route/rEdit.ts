@@ -1,6 +1,5 @@
-import { State } from "/state.ts";
 import { rHTML } from "../rHTML.ts";
-import { Contact } from "/db.ts";
+import { Contact } from "../../types.ts";
 
 export const rEdit = (contact: Contact): string =>
 	rHTML(
@@ -59,6 +58,7 @@ export const rEdit = (contact: Contact): string =>
 			</form>
 
 			<button
+				id="delete-btn"
 				hx-delete="/contacts/${contact.id}"
 				hx-push-url="true"
 				hx-confirm="Are you sure you want to delete this contact?"

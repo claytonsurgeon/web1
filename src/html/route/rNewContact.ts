@@ -1,6 +1,5 @@
-import { State } from "/state.ts";
 import { rHTML } from "../rHTML.ts";
-import { Contact } from "/db.ts";
+import { Contact } from "../../types.ts";
 
 export const rNewContact = (contact: Contact): string => {
 	return rHTML(tForm(contact) + rBack());

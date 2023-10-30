@@ -1,4 +1,4 @@
-import { app } from "/server.ts";
+import { app } from "./src/server.ts";
 
 declare global {
 	// deno-lint-ignore no-explicit-any no-var

@@ -1,5 +1,5 @@
 import { rHTML } from "../rHTML.ts";
-import { Contact } from "/db.ts";
+import { Contact } from "../../types.ts";
 
 export const rShow = (contact: Contact): string =>
 	rHTML(html`

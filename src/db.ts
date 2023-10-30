@@ -1,16 +1,6 @@
 const kv = await Deno.openKv();
 
-export interface Contact {
-	first: string;
-	last: string;
-	phone: string;
-	email: string;
-	id: string;
-
-	errors: Record<string, string>;
-}
-
-export type Contacts = Record<string, Contact>;
+import { Contact, Contacts } from "./types.ts";
 
 //should be throttled at 10 minutes using queue
 export const alphabetizeContacts = async (force = false) => {
@@ -49,7 +39,11 @@ export const alphabetizeContacts = async (force = false) => {
 
 alphabetizeContacts();
 
-export const getContacts = async (start: number, limit: number): Promise<[Contacts, number]> => {
+export const getContactsCount = async () => {
+	return (await kv.get<number>(["contacts-count"])).value || 0;
+};
+
+export const getContacts = async (start: number, limit: number): Promise<Contacts> => {
 	const contacts: Contacts = {};
 	const keys: string[] = [];
 
@@ -73,9 +67,7 @@ export const getContacts = async (start: number, limit: number): Promise<[Contac
 		}
 	}
 
-	const count = (await kv.get<number>(["contacts-count"])).value || 0;
-
-	return [contacts, count];
+	return contacts;
 };
 
 export const contact_search = async (q: string): Promise<Contacts> => {
@@ -210,6 +202,7 @@ export const createContact = async (contact: Contact): Promise<Contact> => {
 
 	// no need for atomic when commiting with UUID
 	const res = await kv.set(key, contact);
+	await alphabetizeContacts(true);
 	// const res = await kv.atomic().check({ key, versionstamp: null }).set(key, contact).commit();
 
 	if (res.ok) {
@@ -261,4 +254,5 @@ export const updateContact = async (contact: Contact): Promise<Contact> => {
 
 export const deleteContact = async (id: string) => {
 	await kv.delete(["contacts", id]);
+	await alphabetizeContacts(true);
 };
