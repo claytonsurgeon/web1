@@ -114,7 +114,26 @@ const tTable = (contacts: Contacts, count: number, page: number): string => {
 	// 		  `;
 
 	return html`
-		<form>
+		<form x-data="{ selected: [] }">
+			<template x-if="selected.length > 0">
+				<div class="box info tool-bar">
+					<slot x-text="selected.length"></slot>
+					contacts selected
+
+					<button type="button" class="bad bg color border">Delete</button>
+					<button
+						type="button"
+						class="bad bg color border"
+						@click="confirm(\`Delete \${selected.length} contacts?\`) && 
+    htmx.ajax('DELETE', '/contacts', { source: $root, target: document.body })"
+					>
+						Delete
+					</button>
+					<hr aria-orientation="vertical" />
+					<button type="button" @click="selected = []">Cancel</button>
+				</div>
+			</template>
+
 			<button
 				hx-delete="/contacts"
 				hx-confirm="Are you sure you want to delete these contacts?"
@@ -149,13 +168,43 @@ export const tRows = (contacts: Contacts): string => {
 	for (const id in contacts) {
 		const contact = contacts[id];
 		rows += html` <tr>
-			<td><input type="checkbox" name="selected_contact_ids" value="${contact.id}" /></td>
+			<td>
+				<input
+					type="checkbox"
+					name="selected_contact_ids"
+					value="${contact.id}"
+					x-model="selected"
+				/>
+			</td>
 			<td>${contact.first}</td>
 			<td>${contact.last}</td>
 			<td>${contact.phone}</td>
 			<td>${contact.email}</td>
 			<td>
-				<a href="/contacts/${contact.id}/edit">Edit</a>
+				<div data-overflow-menu>
+					<button
+						type="button"
+						aria-haspopup="menu"
+						aria-controls="contact-menu-${contact.id}"
+					>
+						Options
+					</button>
+					<div role="menu" hidden id="contact-menu-${contact.id}">
+						<a role="menuitem" href="/contacts/${contact.id}/edit">Edit</a>
+						<a role="menuitem" href="/contacts/${contact.id}">View</a>
+						<a
+							role="menuitem"
+							href="#"
+							hx-swap="outerHTML swap:1s"
+							hx-delete="/contacts/${contact.id}"
+							hx-confirm="Are you sure you want to delete this contact?"
+							hx-target="closest tr"
+						>
+							Delete
+						</a>
+					</div>
+				</div>
+				<!-- <a href="/contacts/${contact.id}/edit">Edit</a>
 				<a href="/contacts/${id}">View</a>
 				<a
 					href="#"
@@ -164,7 +213,7 @@ export const tRows = (contacts: Contacts): string => {
 					hx-confirm="Are you sure you want to delete this contact?"
 					hx-target="closest tr"
 					>Delete</a
-				>
+				> -->
 			</td>
 		</tr>`;
 	}
